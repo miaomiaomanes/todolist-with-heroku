@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const { redirect } = require("express/lib/response");
 const date = require(__dirname + "/date.js");
-const _ = require('lodash');
+const _ = require("lodash");
 
 const app = express();
 
@@ -16,7 +16,6 @@ app.use(express.static("public"));
 
 const items = ["Buy Food", "Cook Food", "Eat Food"];
 const workItems = [];
-
 
 mongoose.connect(
   "mongodb+srv://miaomiao:valentin520%40@todolist.c3zwr.mongodb.net/"
@@ -40,11 +39,10 @@ const Item3 = new Item({
 
 const defaultItems = [Item1, Item2, Item3];
 
-const listSchema ={
-  name:String,
-  items:[itemsSchema]  // what's itemschema here ?
-  
-}
+const listSchema = {
+  name: String,
+  items: [itemsSchema], // what's itemschema here ?
+};
 console.log(itemsSchema);
 
 const List = mongoose.model("List", listSchema);
@@ -71,8 +69,7 @@ app.get("/", function (req, res) {
 
       res.redirect("/");
     } else {
-     
-      res.render("list", {listTitle:"today", newListItems: foundItems });
+      res.render("list", { listTitle: "today", newListItems: foundItems });
     }
   });
 });
@@ -85,14 +82,14 @@ app.post("/", function (req, res) {
     name: itemName,
   });
 
-  if(listName ==="today"){
+  if (listName === "today") {
     item.save();
-    res.redirect('/');
-  }else{
-    List.findOne({name:listName}, function (err, foundList){
+    res.redirect("/");
+  } else {
+    List.findOne({ name: listName }, function (err, foundList) {
       foundList.items.push(item);
       foundList.save();
-      res.redirect("/"+ listName);
+      res.redirect("/" + listName);
     });
   }
 });
@@ -100,7 +97,6 @@ app.post("/", function (req, res) {
 app.post("/delete", function (req, res) {
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
-
 
   if (listName === "today") {
     Item.findByIdAndRemove(checkedItemId, (err) => {
@@ -111,15 +107,17 @@ app.post("/delete", function (req, res) {
         console.log(err);
       }
     });
-  }else{
-    List.findOneAndUpdate({name:listName},{$pull:{items:{_id:checkedItemId}}},function (err, foundList) {
-      if(!err){
-        res.redirect("/" + listName);
+  } else {
+    List.findOneAndUpdate(
+      { name: listName },
+      { $pull: { items: { _id: checkedItemId } } },
+      function (err, foundList) {
+        if (!err) {
+          res.redirect("/" + listName);
+        }
       }
-    })
+    );
   }
-  
- 
 });
 
 // app.get("/work", function (req, res) {
@@ -127,34 +125,34 @@ app.post("/delete", function (req, res) {
 //   console.log(newlistItems);
 // });
 
- app.get("/:customListName", function (req, res) {
- const customListName =_.capitalize(req.params.customListName);
- console.log(customListName);
+app.get("/:customListName", function (req, res) {
+  const customListName = _.capitalize(req.params.customListName);
+  console.log(customListName);
 
- List.findOne({name: customListName}, function(err,foundList){
-   if (!err) {
-     if(!foundList){
-      const list = new List({
-        name:customListName,
-        items:defaultItems
-      });
-      list.save();
-      res.redirect("/" + customListName);
-     }else{
-       res.render("list",{listTitle:foundList.name, newListItems:foundList.items})
-
-     }
-   }
- });
- });
-  
-
-
+  List.findOne({ name: customListName }, function (err, foundList) {
+    if (!err) {
+      if (!foundList) {
+        const list = new List({
+          name: customListName,
+          items: defaultItems,
+        });
+        list.save();
+        res.redirect("/" + customListName);
+      } else {
+        res.render("list", {
+          listTitle: foundList.name,
+          newListItems: foundList.items,
+        });
+      }
+    }
+  });
+});
 
 app.get("/about", function (req, res) {
   res.render("about");
 });
 
-app.listen(3000, function () {
-  console.log("Server started on port 3000");
+var port = process.env.PORT || 3000;
+app.listen(port, function () {
+  console.log("Server started on port:", port);
 });
